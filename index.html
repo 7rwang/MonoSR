@@ -1,490 +1,644 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="description"
-        content="Deformable Neural Radiance Fields creates free-viewpoint portraits (nerfies) from casually captured videos.">
-  <meta name="keywords" content="Nerfies, D-NeRF, NeRF">
+  <meta charset="UTF-8">
+  <title>MonoSR: Open-Vocabulary Spatial Reasoning from Monocular Images</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nerfies: Deformable Neural Radiance Fields</title>
-
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-
-    function gtag() {
-      dataLayer.push(arguments);
+  <meta name="description" content="MonoSR: Open-vocabulary spatial reasoning benchmark from monocular images.">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-alt: #f5f5f7;
+      --text: #111111;
+      --muted: #666666;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.08);
+      --border: #e5e5e7;
+      --code-bg: #111827;
     }
 
-    gtag('js', new Date());
+    * {
+      box-sizing: border-box;
+    }
 
-    gtag('config', 'G-PYVRSFMDRL');
-  </script>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                   "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
 
-  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
-        rel="stylesheet">
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
 
-  <link rel="stylesheet" href="./static/css/bulma.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
-  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
-  <link rel="stylesheet" href="./static/css/index.css">
-  <link rel="icon" href="./static/images/favicon.svg">
+    a:hover {
+      text-decoration: underline;
+    }
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script defer src="./static/js/fontawesome.all.min.js"></script>
-  <script src="./static/js/bulma-carousel.min.js"></script>
-  <script src="./static/js/bulma-slider.min.js"></script>
-  <script src="./static/js/index.js"></script>
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 32px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .topbar .logo {
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    .nav-links a {
+      margin-left: 16px;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    /* Hero */
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 28px;
+      align-items: center;
+      margin-top: 28px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 800px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hero-title {
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .authors {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .affiliations {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-alt);
+      color: var(--muted);
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background: var(--bg-alt);
+      text-decoration: none;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn span {
+      margin-left: 6px;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .hero-media {
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: radial-gradient(circle at top left, #e0ecff, #f9fafb);
+      padding: 10px;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+    }
+
+    .hero-media-inner {
+      border-radius: 14px;
+      background: #000;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 16 / 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-media-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .hero-media-placeholder {
+      color: #e5e7eb;
+      font-size: 13px;
+      text-align: center;
+      padding: 12px;
+    }
+
+    .tagline {
+      position: absolute;
+      left: 12px;
+      bottom: 10px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      backdrop-filter: blur(8px);
+      background: rgba(15, 23, 42, 0.6);
+      color: #e5e7eb;
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 40px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .card {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 16px 18px;
+      font-size: 14px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .pill {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .pill-muted {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    .results-table-wrapper {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: #f9fafb;
+      font-weight: 500;
+    }
+
+    tr:nth-child(even) td {
+      background: #fcfcfd;
+    }
+
+    tr.highlight td {
+      background: #eef2ff;
+      font-weight: 600;
+    }
+
+    .col-left {
+      text-align: left;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: #e5e7eb;
+      padding: 14px 16px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .footer-links a {
+      margin-left: 10px;
+    }
+
+    .badge-small {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+  </style>
 </head>
 <body>
+<div class="page">
 
-<nav class="navbar" role="navigation" aria-label="main navigation">
-  <div class="navbar-brand">
-    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-    </a>
-  </div>
-  <div class="navbar-menu">
-    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
-      <a class="navbar-item" href="https://keunhong.com">
-      <span class="icon">
-          <i class="fas fa-home"></i>
-      </span>
-      </a>
+  <header>
+    <div class="topbar">
+      <div class="logo">MONOSR</div>
+      <div class="nav-links">
+        <a href="#abstract">Abstract</a>
+        <a href="#tasks">Tasks</a>
+        <a href="#results">Results</a>
+        <a href="#downloads">Downloads</a>
+        <a href="#bibtex">BibTeX</a>
+      </div>
+    </div>
+  </header>
 
-      <div class="navbar-item has-dropdown is-hoverable">
-        <a class="navbar-link">
-          More Research
-        </a>
-        <div class="navbar-dropdown">
-          <a class="navbar-item" href="https://hypernerf.github.io">
-            HyperNeRF
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div>
+        <div class="hero-title">MonoSR: Open-Vocabulary Spatial Reasoning from Monocular Images</div>
+        <div class="hero-subtitle">
+          A large-scale benchmark for 3D-aware visual question answering and spatial reasoning from a single RGB image.
+        </div>
+
+        <div class="authors">
+          Qirui Wang*, Jingyi He*, Yining Pan, Si Yong Yeo, Xulei Yang, Shijie Li
+        </div>
+        <div class="affiliations">
+          Technical University of Munich · A*STAR, Singapore<br>
+          <span class="badge-small">* Equal contribution · ✉ Corresponding author</span>
+        </div>
+
+        <div class="badges">
+          <span class="badge">CVPR 2026 (under review)</span>
+          <span class="badge">Monocular 3D Reasoning</span>
+          <span class="badge">Open-Vocabulary VQA</span>
+          <span class="badge">Benchmarks & Evaluation</span>
+        </div>
+
+        <div class="hero-buttons">
+          <a class="btn btn-primary" href="https://arxiv.org/abs/xxxxx" target="_blank">
+            Paper<span>PDF / arXiv</span>
           </a>
-          <a class="navbar-item" href="https://nerfies.github.io">
-            Nerfies
+          <a class="btn" href="https://github.com/7rwang/MonoSR" target="_blank">
+            Code<span>GitHub Repo</span>
           </a>
-          <a class="navbar-item" href="https://latentfusion.github.io">
-            LatentFusion
-          </a>
-          <a class="navbar-item" href="https://photoshape.github.io">
-            PhotoShape
+          <a class="btn" href="#downloads">
+            Data<span>Benchmark & Splits</span>
           </a>
         </div>
       </div>
-    </div>
 
-  </div>
-</nav>
+      <div class="hero-media">
+        <div class="hero-media-inner">
+          <!-- 用你自己的 teaser 图替换这个路径 -->
+          <img src="assets/teaser_monosr.png" alt="MonoSR Teaser Visualization (placeholder)">
+          <div class="tagline">Monocular spatial reasoning across indoor, outdoor, and object-centric scenes.</div>
+        </div>
+        <div class="hero-media-placeholder">
+          Replace <code>assets/teaser_monosr.png</code> with your teaser image.
+        </div>
+      </div>
+    </section>
 
+    <!-- Abstract -->
+    <section id="abstract">
+      <div class="section-title">Abstract</div>
+      <div class="card">
+        <p>
+          Current vision-language models (VLMs) exhibit strong performance on 2D perception and captioning,
+          but remain brittle when asked to perform 3D-aware reasoning from a single image, such as estimating
+          distances, sizes, occlusions, and navigation feasibility. We introduce <b>MonoSR</b>, a large-scale
+          benchmark for <b>open-vocabulary spatial reasoning from monocular RGB images</b>.
+        </p>
+        <p>
+          MonoSR spans diverse domains including indoor scenes, outdoor driving and navigation, and object-centric
+          views. For each image, we construct structured 3D scene graphs with aligned 2D/3D geometry, and generate
+          hierarchical question-answer pairs that probe <i>(1) low-level geometric perception</i>,
+          <i>(2) mid-level perspective-aware reasoning</i>, and <i>(3) high-level situational understanding</i>.
+        </p>
+        <p>
+          We evaluate a range of state-of-the-art VLMs and 3D-aware models, and show that even the strongest systems
+          fall far below human performance on challenging monocular spatial reasoning tasks, revealing substantial
+          room for progress in 3D-grounded multimodal reasoning.
+        </p>
+      </div>
+    </section>
 
-<section class="hero">
-  <div class="hero-body">
-    <div class="container is-max-desktop">
-      <div class="columns is-centered">
-        <div class="column has-text-centered">
-          <h1 class="title is-1 publication-title">Nerfies: Deformable Neural Radiance Fields</h1>
-          <div class="is-size-5 publication-authors">
-            <span class="author-block">
-              <a href="https://keunhong.com">Keunhong Park</a><sup>1</sup>,</span>
-            <span class="author-block">
-              <a href="https://utkarshsinha.com">Utkarsh Sinha</a><sup>2</sup>,</span>
-            <span class="author-block">
-              <a href="https://jonbarron.info">Jonathan T. Barron</a><sup>2</sup>,
-            </span>
-            <span class="author-block">
-              <a href="http://sofienbouaziz.com">Sofien Bouaziz</a><sup>2</sup>,
-            </span>
-            <span class="author-block">
-              <a href="https://www.danbgoldman.com">Dan B Goldman</a><sup>2</sup>,
-            </span>
-            <span class="author-block">
-              <a href="https://homes.cs.washington.edu/~seitz/">Steven M. Seitz</a><sup>1,2</sup>,
-            </span>
-            <span class="author-block">
-              <a href="http://www.ricardomartinbrualla.com">Ricardo Martin-Brualla</a><sup>2</sup>
-            </span>
-          </div>
-
-          <div class="is-size-5 publication-authors">
-            <span class="author-block"><sup>1</sup>University of Washington,</span>
-            <span class="author-block"><sup>2</sup>Google Research</span>
-          </div>
-
-          <div class="column has-text-centered">
-            <div class="publication-links">
-              <!-- PDF Link. -->
-              <span class="link-block">
-                <a href="https://arxiv.org/pdf/2011.12948"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fas fa-file-pdf"></i>
-                  </span>
-                  <span>Paper</span>
-                </a>
-              </span>
-              <span class="link-block">
-                <a href="https://arxiv.org/abs/2011.12948"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="ai ai-arxiv"></i>
-                  </span>
-                  <span>arXiv</span>
-                </a>
-              </span>
-              <!-- Video Link. -->
-              <span class="link-block">
-                <a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-youtube"></i>
-                  </span>
-                  <span>Video</span>
-                </a>
-              </span>
-              <!-- Code Link. -->
-              <span class="link-block">
-                <a href="https://github.com/google/nerfies"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-github"></i>
-                  </span>
-                  <span>Code</span>
-                  </a>
-              </span>
-              <!-- Dataset Link. -->
-              <span class="link-block">
-                <a href="https://github.com/google/nerfies/releases/tag/0.1"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="far fa-images"></i>
-                  </span>
-                  <span>Data</span>
-                  </a>
-            </div>
-
+    <!-- Tasks / Benchmark overview -->
+    <section id="tasks">
+      <div class="section-title">Benchmark Overview</div>
+      <div class="section-subtitle">
+        MonoSR is organized along three axes: <b>domain</b>, <b>reasoning level</b>, and <b>task type</b>.
+      </div>
+      <div class="card-grid">
+        <div class="card">
+          <b>Domains</b>
+          <p>
+            We cover a broad spectrum of monocular setups:
+          </p>
+          <ul>
+            <li>Indoor: homes, offices, kitchens, bathrooms, corridors.</li>
+            <li>Outdoor: streets, driving scenes, urban & suburban layouts.</li>
+            <li>Object-centric: close-up views with strong perspective distortions.</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill">Indoor</span>
+            <span class="pill">Outdoor</span>
+            <span class="pill">Object-centric</span>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<section class="hero teaser">
-  <div class="container is-max-desktop">
-    <div class="hero-body">
-      <video id="teaser" autoplay muted loop playsinline height="100%">
-        <source src="./static/videos/teaser.mp4"
-                type="video/mp4">
-      </video>
-      <h2 class="subtitle has-text-centered">
-        <span class="dnerf">Nerfies</span> turns selfie videos from your phone into
-        free-viewpoint
-        portraits.
-      </h2>
-    </div>
-  </div>
-</section>
-
-
-<section class="hero is-light is-small">
-  <div class="hero-body">
-    <div class="container">
-      <div id="results-carousel" class="carousel results-carousel">
-        <div class="item item-steve">
-          <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/steve.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-chair-tp">
-          <video poster="" id="chair-tp" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/chair-tp.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-shiba">
-          <video poster="" id="shiba" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/shiba.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-fullbody">
-          <video poster="" id="fullbody" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/fullbody.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-blueshirt">
-          <video poster="" id="blueshirt" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/blueshirt.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-mask">
-          <video poster="" id="mask" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/mask.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-coffee">
-          <video poster="" id="coffee" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/coffee.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-toby">
-          <video poster="" id="toby" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/toby2.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<section class="section">
-  <div class="container is-max-desktop">
-    <!-- Abstract. -->
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Abstract</h2>
-        <div class="content has-text-justified">
+        <div class="card">
+          <b>Hierarchical Skills</b>
           <p>
-            We present the first method capable of photorealistically reconstructing a non-rigidly
-            deforming scene using photos/videos captured casually from mobile phones.
+            Each QA pair is assigned to one of three reasoning levels:
           </p>
-          <p>
-            Our approach augments neural radiance fields
-            (NeRF) by optimizing an
-            additional continuous volumetric deformation field that warps each observed point into a
-            canonical 5D NeRF.
-            We observe that these NeRF-like deformation fields are prone to local minima, and
-            propose a coarse-to-fine optimization method for coordinate-based models that allows for
-            more robust optimization.
-            By adapting principles from geometry processing and physical simulation to NeRF-like
-            models, we propose an elastic regularization of the deformation field that further
-            improves robustness.
-          </p>
-          <p>
-            We show that <span class="dnerf">Nerfies</span> can turn casually captured selfie
-            photos/videos into deformable NeRF
-            models that allow for photorealistic renderings of the subject from arbitrary
-            viewpoints, which we dub <i>"nerfies"</i>. We evaluate our method by collecting data
-            using a
-            rig with two mobile phones that take time-synchronized photos, yielding train/validation
-            images of the same pose at different viewpoints. We show that our method faithfully
-            reconstructs non-rigidly deforming scenes and reproduces unseen views with high
-            fidelity.
-          </p>
-        </div>
-      </div>
-    </div>
-    <!--/ Abstract. -->
-
-    <!-- Paper video. -->
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Video</h2>
-        <div class="publication-video">
-          <iframe src="https://www.youtube.com/embed/MrKrnHhk8IA?rel=0&amp;showinfo=0"
-                  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-      </div>
-    </div>
-    <!--/ Paper video. -->
-  </div>
-</section>
-
-
-<section class="section">
-  <div class="container is-max-desktop">
-
-    <div class="columns is-centered">
-
-      <!-- Visual Effects. -->
-      <div class="column">
-        <div class="content">
-          <h2 class="title is-3">Visual Effects</h2>
-          <p>
-            Using <i>nerfies</i> you can create fun visual effects. This Dolly zoom effect
-            would be impossible without nerfies since it would require going through a wall.
-          </p>
-          <video id="dollyzoom" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/dollyzoom-stacked.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-      </div>
-      <!--/ Visual Effects. -->
-
-      <!-- Matting. -->
-      <div class="column">
-        <h2 class="title is-3">Matting</h2>
-        <div class="columns is-centered">
-          <div class="column content">
-            <p>
-              As a byproduct of our method, we can also solve the matting problem by ignoring
-              samples that fall outside of a bounding box during rendering.
-            </p>
-            <video id="matting-video" controls playsinline height="100%">
-              <source src="./static/videos/matting.mp4"
-                      type="video/mp4">
-            </video>
-          </div>
-
-        </div>
-      </div>
-    </div>
-    <!--/ Matting. -->
-
-    <!-- Animation. -->
-    <div class="columns is-centered">
-      <div class="column is-full-width">
-        <h2 class="title is-3">Animation</h2>
-
-        <!-- Interpolating. -->
-        <h3 class="title is-4">Interpolating states</h3>
-        <div class="content has-text-justified">
-          <p>
-            We can also animate the scene by interpolating the deformation latent codes of two input
-            frames. Use the slider here to linearly interpolate between the left frame and the right
-            frame.
-          </p>
-        </div>
-        <div class="columns is-vcentered interpolation-panel">
-          <div class="column is-3 has-text-centered">
-            <img src="./static/images/interpolate_start.jpg"
-                 class="interpolation-image"
-                 alt="Interpolate start reference image."/>
-            <p>Start Frame</p>
-          </div>
-          <div class="column interpolation-video-column">
-            <div id="interpolation-image-wrapper">
-              Loading...
-            </div>
-            <input class="slider is-fullwidth is-large is-info"
-                   id="interpolation-slider"
-                   step="1" min="0" max="100" value="0" type="range">
-          </div>
-          <div class="column is-3 has-text-centered">
-            <img src="./static/images/interpolate_end.jpg"
-                 class="interpolation-image"
-                 alt="Interpolation end reference image."/>
-            <p class="is-bold">End Frame</p>
+          <ul>
+            <li><b>Level 1</b>: metric & ordinal geometry (distances, sizes, heights).</li>
+            <li><b>Level 2</b>: perspective-aware relations & occlusions.</li>
+            <li><b>Level 3</b>: situational & risk-aware reasoning (navigation, safety).</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill">Low-level geometry</span>
+            <span class="pill">Mid-level perspective</span>
+            <span class="pill">High-level situational</span>
           </div>
         </div>
-        <br/>
-        <!--/ Interpolating. -->
 
-        <!-- Re-rendering. -->
-        <h3 class="title is-4">Re-rendering the input video</h3>
-        <div class="content has-text-justified">
+        <div class="card">
+          <b>Task Types</b>
           <p>
-            Using <span class="dnerf">Nerfies</span>, you can re-render a video from a novel
-            viewpoint such as a stabilized camera by playing back the training deformations.
+            We instantiate multiple spatial reasoning templates, including:
           </p>
-        </div>
-        <div class="content has-text-centered">
-          <video id="replay-video"
-                 controls
-                 muted
-                 preload
-                 playsinline
-                 width="75%">
-            <source src="./static/videos/replay.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <!--/ Re-rendering. -->
-
-      </div>
-    </div>
-    <!--/ Animation. -->
-
-
-    <!-- Concurrent Work. -->
-    <div class="columns is-centered">
-      <div class="column is-full-width">
-        <h2 class="title is-3">Related Links</h2>
-
-        <div class="content has-text-justified">
-          <p>
-            There's a lot of excellent work that was introduced around the same time as ours.
-          </p>
-          <p>
-            <a href="https://arxiv.org/abs/2104.09125">Progressive Encoding for Neural Optimization</a> introduces an idea similar to our windowed position encoding for coarse-to-fine optimization.
-          </p>
-          <p>
-            <a href="https://www.albertpumarola.com/research/D-NeRF/index.html">D-NeRF</a> and <a href="https://gvv.mpi-inf.mpg.de/projects/nonrigid_nerf/">NR-NeRF</a>
-            both use deformation fields to model non-rigid scenes.
-          </p>
-          <p>
-            Some works model videos with a NeRF by directly modulating the density, such as <a href="https://video-nerf.github.io/">Video-NeRF</a>, <a href="https://www.cs.cornell.edu/~zl548/NSFF/">NSFF</a>, and <a href="https://neural-3d-video.github.io/">DyNeRF</a>
-          </p>
-          <p>
-            There are probably many more by the time you are reading this. Check out <a href="https://dellaert.github.io/NeRF/">Frank Dellart's survey on recent NeRF papers</a>, and <a href="https://github.com/yenchenlin/awesome-NeRF">Yen-Chen Lin's curated list of NeRF papers</a>.
-          </p>
+          <ul>
+            <li>Distance & depth estimation.</li>
+            <li>Size & footprint comparison.</li>
+            <li>Occlusion & visibility reasoning.</li>
+            <li>Viewpoint & relative direction queries.</li>
+            <li>Navigation feasibility & collision risk.</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill-muted">Numeric QA</span>
+            <span class="pill-muted">Multi-choice</span>
+            <span class="pill-muted">Binary (Yes/No)</span>
+          </div>
         </div>
       </div>
-    </div>
-    <!--/ Concurrent Work. -->
+    </section>
 
-  </div>
-</section>
+    <!-- Results -->
+    <section id="results">
+      <div class="section-title">Results on MonoSR</div>
+      <div class="section-subtitle">
+        Accuracy (%) on different reasoning levels. Numbers are placeholders – replace with your actual results.
+      </div>
+      <div class="results-table-wrapper">
+        <table>
+          <thead>
+          <tr>
+            <th class="col-left">Model</th>
+            <th>Params</th>
+            <th>Level 1<br><span style="font-weight:400;color:#6b7280;">Geometry</span></th>
+            <th>Level 2<br><span style="font-weight:400;color:#6b7280;">Perspective</span></th>
+            <th>Level 3<br><span style="font-weight:400;color:#6b7280;">Situational</span></th>
+            <th>Overall</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td class="col-left">Random chance</td>
+            <td>–</td>
+            <td>25.0</td>
+            <td>25.0</td>
+            <td>25.0</td>
+            <td>25.0</td>
+          </tr>
+          <tr>
+            <td class="col-left">Human</td>
+            <td>–</td>
+            <td>97.8</td>
+            <td>95.6</td>
+            <td>93.2</td>
+            <td>95.5</td>
+          </tr>
+          <tr>
+            <td class="col-left">GPT-4o</td>
+            <td>Closed</td>
+            <td>78.1</td>
+            <td>65.3</td>
+            <td>49.7</td>
+            <td>64.4</td>
+          </tr>
+          <tr>
+            <td class="col-left">Qwen-VL-2.5-72B</td>
+            <td>72B</td>
+            <td>72.4</td>
+            <td>58.9</td>
+            <td>44.1</td>
+            <td>58.5</td>
+          </tr>
+          <tr class="highlight">
+            <td class="col-left">MonoSR (ours)</td>
+            <td>–</td>
+            <td>⟨fill⟩</td>
+            <td>⟨fill⟩</td>
+            <td>⟨fill⟩</td>
+            <td>⟨fill⟩</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
+    <!-- Downloads -->
+    <section id="downloads">
+      <div class="section-title">Downloads</div>
+      <div class="card-grid">
+        <div class="card">
+          <b>Benchmark & Annotations</b>
+          <p>
+            JSON / JSONL files with images, 3D scene graphs, and QA pairs for all splits.
+          </p>
+          <ul>
+            <li>Train / Val / Test splits.</li>
+            <li>Per-domain and per-level subsets.</li>
+            <li>Open-vocabulary category names.</li>
+          </ul>
+          <a href="#" target="_blank">[Coming soon] Benchmark download</a>
+        </div>
+        <div class="card">
+          <b>Evaluation Code</b>
+          <p>
+            Reference evaluation scripts and baselines for VLMs and 3D-aware models.
+          </p>
+          <ul>
+            <li>Standardized metrics & logging.</li>
+            <li>Model-specific evaluation wrappers.</li>
+            <li>Reproducible configuration files.</li>
+          </ul>
+          <a href="https://github.com/7rwang/MonoSR" target="_blank">GitHub: MonoSR</a>
+        </div>
+        <div class="card">
+          <b>Visualizations</b>
+          <p>
+            Qualitative examples of 3D scene graphs, visual prompts, and model predictions.
+          </p>
+          <ul>
+            <li>Overlayed 2D prompts & 3D boxes.</li>
+            <li>Per-task qualitative galleries.</li>
+          </ul>
+          <a href="#" target="_blank">[Optional] Demo gallery</a>
+        </div>
+      </div>
+    </section>
 
-<section class="section" id="BibTeX">
-  <div class="container is-max-desktop content">
-    <h2 class="title">BibTeX</h2>
-    <pre><code>@article{park2021nerfies,
-  author    = {Park, Keunhong and Sinha, Utkarsh and Barron, Jonathan T. and Bouaziz, Sofien and Goldman, Dan B and Seitz, Steven M. and Martin-Brualla, Ricardo},
-  title     = {Nerfies: Deformable Neural Radiance Fields},
-  journal   = {ICCV},
-  year      = {2021},
+    <!-- BibTeX -->
+    <section id="bibtex">
+      <div class="section-title">BibTeX</div>
+      <div class="card">
+        <p>If you find MonoSR useful in your research, please cite:</p>
+        <pre><code>@inproceedings{wang2026monosr,
+  title     = {MonoSR: Open-Vocabulary Spatial Reasoning from Monocular Images},
+  author    = {Wang, Qirui and He, Jingyi and Pan, Yining and
+               Yeo, Si Yong and Yang, Xulei and Li, Shijie},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2026}
 }</code></pre>
-  </div>
-</section>
-
-
-<footer class="footer">
-  <div class="container">
-    <div class="content has-text-centered">
-      <a class="icon-link"
-         href="./static/videos/nerfies_paper.pdf">
-        <i class="fas fa-file-pdf"></i>
-      </a>
-      <a class="icon-link" href="https://github.com/keunhong" class="external-link" disabled>
-        <i class="fab fa-github"></i>
-      </a>
-    </div>
-    <div class="columns is-centered">
-      <div class="column is-8">
-        <div class="content">
-          <p>
-            This website is licensed under a <a rel="license"
-                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
-            Commons Attribution-ShareAlike 4.0 International License</a>.
-          </p>
-          <p>
-            This means you are free to borrow the <a
-              href="https://github.com/nerfies/nerfies.github.io">source code</a> of this website,
-            we just ask that you link back to this page in the footer.
-            Please remember to remove the analytics code included in the header of the website which
-            you do not want on your website.
-          </p>
-        </div>
       </div>
-    </div>
-  </div>
-</footer>
+    </section>
+  </main>
 
+  <footer>
+    <div>MonoSR Project Page · Last updated: 2025-11-24</div>
+    <div class="footer-links">
+      <a href="https://github.com/7rwang/MonoSR" target="_blank">GitHub</a>
+      <a href="mailto:li_shijie@a-star.edu.sg">Contact</a>
+    </div>
+  </footer>
+
+</div>
 </body>
 </html>
