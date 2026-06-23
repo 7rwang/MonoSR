@@ -37,6 +37,10 @@ body {
   width: min(100%, 1120px);
 }
 
+.project-figure--xwide {
+  width: min(100%, 1360px);
+}
+
 .project-figure img {
   display: block;
   width: 100%;
@@ -46,9 +50,21 @@ body {
   background: #ffffff;
 }
 
+.pipeline-overview {
+  width: min(calc(100vw - 2rem), 1360px);
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+
 @media screen and (max-width: 768px) {
   .project-figure {
     width: 100%;
+  }
+
+  .pipeline-overview {
+    width: 100%;
+    margin-left: 0;
+    transform: none;
   }
 
   .project-figure img {
